@@ -1,0 +1,43 @@
+#ifndef GENERATED_STDINT_H
+#define GENERATED_STDINT_H
+
+#cmakedefine HAVE_STDLIB_H @HAVE_STDLIB_H@
+#cmakedefine HAVE_LIMITS_H @HAVE_LIMITS_H@
+#cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+#cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+#cmakedefine HAVE_SYS_INTTYPES_H @HAVE_SYS_INTTYPES_H@
+
+#cmakedefine HAVE_MYPACKAGE_INT8 @HAVE_MYPACKAGE_INT8@
+#cmakedefine HAVE_MYPACKAGE_UINT8 @HAVE_MYPACKAGE_INT8@
+#cmakedefine HAVE_MYPACKAGE_INT16 @HAVE_MYPACKAGE_INT16@
+#cmakedefine HAVE_MYPACKAGE_UINT16 @HAVE_MYPACKAGE_INT16@
+#cmakedefine HAVE_MYPACKAGE_INT32 @HAVE_MYPACKAGE_INT32@
+#cmakedefine HAVE_MYPACKAGE_UINT32 @HAVE_MYPACKAGE_INT32@
+#cmakedefine HAVE_MYPACKAGE_INT64 @HAVE_MYPACKAGE_INT64@
+#cmakedefine HAVE_MYPACKAGE_UINT64 @HAVE_MYPACKAGE_INT64@
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_INTTYPES_H
+#include <sys/inttypes.h>
+#endif
+
+#cmakedefine HAVE_INT8_T @HAVE_INT8_T@
+
+#ifndef HAVE_INT8_T
+#  ifdef HAVE_MYPACKAGE_INT8
+#    typedef @MYPACKAGE_INT8_TYPEDEF@ int8_t;
+#  endif
+#endif
+
+#endif /* GENERATED_STDINT_H */

@@ -31,12 +31,18 @@ MACRO (MYPACKAGECHECKCOMMONSIZES)
   CHECK_TYPE_SIZE("unsigned long" SIZEOF_UNSIGNED_LONG)
   CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
   CHECK_TYPE_SIZE("size_t" SIZEOF_SIZE_T)
+  CHECK_TYPE_SIZE("void *" SIZEOF_VOID_STAR)
   #
   # Special types
   #
   FOREACH (_sign "" "u")
+    #
+    # Remember that CHAR_BIT minimum value is 8 -;
+    #
     FOREACH (_size 8 16 32 64)
-      MATH(EXPR  _sizeof "${_size} / 8")
+      MATH(EXPR  _sizeof "${_size} / ${C_CHAR_BIT}")
+      SET (_ctype    ${_sign}int${_size}_t)
+      STRING (TOUPPER ${_ctype} _CTYPE)
       SET (_mytype    MYPACKAGE_${_sign}int${_size})
       STRING (TOUPPER ${_mytype} _MYTYPE)
       SET (_MYTYPEDEF ${_MYTYPE}_TYPEDEF)
@@ -54,10 +60,16 @@ MACRO (MYPACKAGECHECKCOMMONSIZES)
           SET (HAVE_${_MYTYPE} TRUE)
           SET (SIZEOF_${_MYTYPE} ${${_TYPE}})
           SET (${_MYTYPEDEF} ${_type})
+          IF (${_type} STREQUAL ${_ctype})
+            SET (HAVE_${_CTYPE} TRUE)
+          ELSE ()
+            SET (HAVE_${_CTYPE} FALSE)
+          ENDIF ()
           BREAK ()
         ENDIF ()
       ENDFOREACH ()
-      IF (NOT HAVE_${_MYTYPE})
+      # IF (NOT HAVE_${_MYTYPE})
+      IF (TRUE)
         #
         # Try with C types
         #
@@ -70,6 +82,7 @@ MACRO (MYPACKAGECHECKCOMMONSIZES)
           IF (HAVE_SIZEOF_${_C})
             IF (${SIZEOF_${_C}} EQUAL ${_sizeof})
               SET (HAVE_${_MYTYPE} TRUE)
+              SET (SIZEOF_${_MYTYPE} ${${_TYPE}})
               SET (${_MYTYPEDEF} ${_c})
               BREAK ()
             ENDIF ()
@@ -78,6 +91,8 @@ MACRO (MYPACKAGECHECKCOMMONSIZES)
       ENDIF ()
       MARK_AS_ADVANCED (
         HAVE_${_MYTYPE}
+        SIZEOF_${_MYTYPE}
+        HAVE_${_CTYPE}
         ${_MYTYPEDEF})
     ENDFOREACH ()
   ENDFOREACH ()
