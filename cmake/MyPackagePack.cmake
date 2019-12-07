@@ -9,6 +9,39 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Configuration CPack")
     ENDIF ()
+    #
+    # If this is a git repository, guess username and contact from git
+    # else guess it from user name environment variable
+    #
+    FIND_PACKAGE(Git)
+    IF (GIT_FOUND)
+      EXECUTE_PROCESS(
+        COMMAND ${GIT_EXECUTABLE} config --get user.name
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE _git_username)
+      EXECUTE_PROCESS(
+        COMMAND ${GIT_EXECUTABLE} config --get user.email
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE _git_useremail)
+      STRING(REGEX REPLACE "\r?\n$" "" _git_username "${_git_username}")
+      STRING(REGEX REPLACE "\r?\n$" "" _git_useremail "${_git_useremail}")
+    ENDIF ()
+    IF (NOT "x${_git_username}" STREQUAL "x")
+      IF (NOT "x${_git_useremail}" STREQUAL "x")
+        SET (CPACK_PACKAGE_CONTACT             "${_git_username} <${_git_useremail}>")
+      ELSE ()
+        SET (CPACK_PACKAGE_CONTACT             "${_git_username}")
+      ENDIF ()
+    ELSE ()
+      IF (WIN32)
+        SET (CPACK_PACKAGE_CONTACT             "$ENV{USERNAME}")
+      ELSE ()
+        SET (CPACK_PACKAGE_CONTACT             "$ENV{USER}")
+      ENDIF ()
+    ENDIF ()
+    IF (MYPACKAGE_DEBUG)
+      MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Contact                  : ${CPACK_PACKAGE_CONTACT}")
+    ENDIF ()
     SET (CPACK_PACKAGE_NAME                "${PROJECT_NAME}")
     SET (CPACK_PACKAGE_VENDOR              "${VENDOR}")
     SET (CPACK_PACKAGE_DESCRIPTION_SUMMARY "${SUMMARY}")
