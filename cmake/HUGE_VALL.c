@@ -3,9 +3,9 @@
 #endif
 #ifdef HAVE_HUGE_VALL_REPLACEMENT_
 #  undef HUGE_VALL
-#  define HUGE_VALL (__builtin_huge_val())
+#  define HUGE_VALL (__builtin_huge_vall())
 #endif
 int main() {
-  double x = -C_HUGE_VALL;
+  long double x = -C_HUGE_VALL;
   return 0;
 }
