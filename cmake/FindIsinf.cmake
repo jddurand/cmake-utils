@@ -19,15 +19,18 @@ MACRO (FINDISINF)
       #
       # Test
       #
-      MESSAGE(STATUS "Looking for working isinf")
-      TRY_COMPILE (C_HAS_ISINF ${CMAKE_CURRENT_BINARY_DIR}
-        ${source_dir}/isinf.c
-        COMPILE_DEFINITIONS -DC_ISINF=isinf -DHAVE_MATH_H=${_HAVE_MATH_H})
-      IF (C_HAS_ISINF)
-        MESSAGE(STATUS "Looking for working isinf - found")
-        SET (_C_ISINF isinf)
-        SET (_C_ISINF_FOUND TRUE)
-      ENDIF ()
+      FOREACH (KEYWORD "isinf" "_isinf" "__isinf")
+        MESSAGE(STATUS "Looking for ${KEYWORD}")
+        TRY_COMPILE (C_HAS_${KEYWORD} ${CMAKE_CURRENT_BINARY_DIR}
+          ${source_dir}/isinf.c
+          COMPILE_DEFINITIONS -DC_ISINF=${KEYWORD} -DHAVE_MATH_H=${_HAVE_MATH_H})
+        IF (C_HAS_${KEYWORD})
+          MESSAGE(STATUS "Looking for ${KEYWORD} - found")
+          SET (_C_ISINF ${KEYWORD})
+          SET (_C_ISINF_FOUND TRUE)
+          BREAK ()
+        ENDIF ()
+      ENDFOREACH ()
     ENDIF ()
     IF (_C_ISINF_FOUND)
       SET (C_ISINF "${_C_ISINF}" CACHE STRING "C isinf implementation")

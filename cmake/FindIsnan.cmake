@@ -19,15 +19,18 @@ MACRO (FINDISNAN)
       #
       # Test
       #
-      MESSAGE(STATUS "Looking for working isnan")
-      TRY_COMPILE (C_HAS_ISNAN ${CMAKE_CURRENT_BINARY_DIR}
-        ${source_dir}/isnan.c
-        COMPILE_DEFINITIONS -DC_ISNAN=isnan -DHAVE_MATH_H=${_HAVE_MATH_H})
-      IF (C_HAS_ISNAN)
-        MESSAGE(STATUS "Looking for working isnan - found")
-        SET (_C_ISNAN isnan)
-        SET (_C_ISNAN_FOUND TRUE)
-      ENDIF ()
+      FOREACH (KEYWORD "isnan" "_isnan" "__isnan")
+        MESSAGE(STATUS "Looking for ${KEYWORD}")
+        TRY_COMPILE (C_HAS_${KEYWORD} ${CMAKE_CURRENT_BINARY_DIR}
+          ${source_dir}/isnan.c
+          COMPILE_DEFINITIONS -DC_ISNAN=${KEYWORD} -DHAVE_MATH_H=${_HAVE_MATH_H})
+        IF (C_HAS_${KEYWORD})
+          MESSAGE(STATUS "Looking for ${KEYWORD} - found")
+          SET (_C_ISNAN ${KEYWORD})
+          SET (_C_ISNAN_FOUND TRUE)
+          BREAK ()
+        ENDIF ()
+      ENDFOREACH ()
     ENDIF ()
     IF (_C_ISNAN_FOUND)
       SET (C_ISNAN "${_C_ISNAN}" CACHE STRING "C isnan implementation")
