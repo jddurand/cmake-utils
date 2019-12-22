@@ -37,10 +37,12 @@ MACRO (FINDNAN)
           SET (_C_NAN_REPLACEMENT TRUE)
         ELSE ()
           MESSAGE(STATUS "Looking for NAN replacement using division")
-          TRY_COMPILE (C_HAS_NAN_REPLACEMENT_USING_DIVISION ${CMAKE_CURRENT_BINARY_DIR}
+          TRY_RUN(C_NAN_RUN_RESULT
+            C_NAN_COMPILE_RESULT
+            ${CMAKE_CURRENT_BINARY_DIR}
             ${source_dir}/NAN.c
             COMPILE_DEFINITIONS -DHAVE_NAN_REPLACEMENT_USING_DIVISION=1 -DHAVE_MATH_H=${_HAVE_MATH_H})
-          IF (C_HAS_NAN_REPLACEMENT_USING_DIVISION)
+          IF (C_NAN_COMPILE_RESULT AND (C_NAN_RUN_RESULT EQUAL 0))
             MESSAGE(STATUS "Looking for NAN replacement using division - found")
             SET (_C_NAN_REPLACEMENT_USING_DIVISION TRUE)
           ENDIF ()
