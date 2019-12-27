@@ -9,7 +9,7 @@ MACRO (FINDSTRTOLD)
       #
       # Test
       #
-      FOREACH (KEYWORD "strtold")
+      FOREACH (KEYWORD "strtold" "_strtold" "__strtold")
         MESSAGE(STATUS "Looking for ${KEYWORD}")
         TRY_COMPILE (C_HAS_${KEYWORD} ${CMAKE_CURRENT_BINARY_DIR}
           ${source_dir}/strtold.c

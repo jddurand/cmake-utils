@@ -9,7 +9,7 @@ MACRO (FINDSTRTOF)
       #
       # Test
       #
-      FOREACH (KEYWORD "strtof")
+      FOREACH (KEYWORD "strtof" "_strtof" "__strtof")
         MESSAGE(STATUS "Looking for ${KEYWORD}")
         TRY_COMPILE (C_HAS_${KEYWORD} ${CMAKE_CURRENT_BINARY_DIR}
           ${source_dir}/strtof.c
