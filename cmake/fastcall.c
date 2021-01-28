@@ -1,5 +1,5 @@
 typedef int foo_t;
-static C_FASTCALL foo_t static_foo() {
+static foo_t C_FASTCALL static_foo() {
   return 0;
 }
 foo_t foo() {
