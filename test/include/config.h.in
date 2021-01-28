@@ -1,0 +1,4 @@
+#ifndef CMAKE_UTILS_CONFIG_H
+#define CMAKE_UTILS_CONFIG_H
+
+#endif /* CMAKE_UTILS_CONFIG_H */
