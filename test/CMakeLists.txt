@@ -4,13 +4,5 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
 ENDIF ()
 #
 # SET (MYPACKAGE_DEBUG TRUE)
-MYPACKAGESTART (cmake_utils 1 0 0)
-
-MYPACKAGELIBRARY(
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in
-  ${INCLUDE_OUTPUT_PATH}/cmake_utils/internal/config.h
-  src/cmake_utils.c)
-
-MYPACKAGEEXECUTABLE(exe bin/test.c)
-
+MYPACKAGESTART (cmake-utils 1 0 0)
 MYPACKAGEPRINTSETUP()
