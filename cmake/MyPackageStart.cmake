@@ -5,6 +5,20 @@ MACRO (MYPACKAGESTART packageName versionMajor versionMinor versionPatch)
   PROJECT (${packageName} VERSION ${versionMajor}.${versionMinor}.${versionPatch} LANGUAGES C CXX)  # This is setting PROJECT_NAME -;
   MESSAGE (STATUS "[${PROJECT_NAME}-START-STATUS] Starting version ${versionMajor}.${versionMinor}.${versionPatch}")
   #
+  # Global policies
+  #
+  #
+  # CMAKE_REQUIRED_LIBRARIES requires CMP0075
+  #
+  FOREACH (_policy CMP0075)
+    IF (POLICY ${_policy})
+      IF (MYPACKAGE_DEBUG)
+        MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Setting policy ${_policy} to NEW")
+      ENDIF ()
+      CMAKE_POLICY (SET ${_policy} NEW)
+    ENDIF ()
+  ENDFOREACH ()
+  #
   # Options
   #
   OPTION (ALL_IN_ONE "Compile non-system wide dependencies locally" OFF)
