@@ -9,6 +9,17 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
   ENDIF ()
   SET_PROPERTY(GLOBAL PROPERTY MYPACKAGE_SOURCE_DIR ${source_dir})
   #
+  # Policies common to all our files
+  #
+  FOREACH (_policy  CMP0018 CMP0063 CMP0075)
+    IF (POLICY ${_policy})
+      IF (MYPACKAGE_DEBUG)
+        MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Setting policy ${_policy} to NEW")
+      ENDIF ()
+      CMAKE_POLICY (SET ${_policy} NEW)
+    ENDIF ()
+  ENDFOREACH ()
+  #
   # Load all macros in this directory
   #
   FILE(GLOB _cmake_glob ${source_dir}/*.cmake)
@@ -21,7 +32,10 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Including ${_cmake}")
     ENDIF ()
-    INCLUDE (${_cmake})  # No pb if we re-include ourself -;
+    #
+    # We want our include to inherits all the policies we setted here
+    #
+    INCLUDE (${_cmake} NO_POLICY_SCOPE)  # No pb if we re-include ourself -;
   ENDFOREACH ()
   #
   # Enable Testing
