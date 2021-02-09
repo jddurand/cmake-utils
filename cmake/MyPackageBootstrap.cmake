@@ -58,6 +58,17 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
   IF (NOT (HAVE_LOG AND HAVE_EXP))
     UNSET (HAVE_LOG CACHE)
     UNSET (HAVE_EXP CACHE)
+    #
+    # CMAKE_REQUIRED_LIBRARIES requires CMP0075
+    #
+    FOREACH (_policy CMP0075)
+      IF (POLICY ${_policy})
+        IF (MYPACKAGE_DEBUG)
+          MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Setting policy ${_policy} to NEW")
+        ENDIF ()
+        CMAKE_POLICY (SET ${_policy} NEW)
+      ENDIF ()
+    ENDFOREACH ()
     SET (CMAKE_REQUIRED_LIBRARIES "m")
     CHECK_SYMBOL_EXISTS (log "math.h" HAVE_LOG)
     CHECK_SYMBOL_EXISTS (exp "math.h" HAVE_EXP)
