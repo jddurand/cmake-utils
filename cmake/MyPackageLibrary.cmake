@@ -31,19 +31,6 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
     SOVERSION     "${${PROJECT_NAME}_VERSION_MAJOR}"
     )
   #
-  # We always add dl an m libraries
-  #
-  IF (CMAKE_DL_LIBS OR CMAKE_MATH_LIBS)
-    FOREACH (_target ${PROJECT_NAME} ${PROJECT_NAME}_static)
-      IF (CMAKE_DL_LIBS)
-        TARGET_LINK_LIBRARIES(${_target} PRIVATE ${CMAKE_DL_LIBS})
-      ENDIF ()
-      IF (CMAKE_MATH_LIBS)
-        TARGET_LINK_LIBRARIES(${_target} PRIVATE ${CMAKE_MATH_LIBS})
-      ENDIF ()
-    ENDFOREACH ()
-  ENDIF ()
-  #
   # ... Tracing
   #
   STRING (TOUPPER ${PROJECT_NAME} _PROJECTNAME)
