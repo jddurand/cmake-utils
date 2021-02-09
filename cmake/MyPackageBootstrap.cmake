@@ -48,4 +48,22 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
   ENDIF ()
   INSTALL (CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_MAKE_PROGRAM} man)")
   ADD_CUSTOM_TARGET (man)
+  #
+  # Transversal things: link and math libraries, based on
+  # https://cmake.org/cmake/help/latest/guide/tutorial/index.html?highlight=cmake_required_librarie
+  #
+  INCLUDE (CheckSymbolExists)
+  CHECK_SYMBOL_EXISTS (log "math.h" HAVE_LOG)
+  CHECK_SYMBOL_EXISTS (exp "math.h" HAVE_EXP)
+  IF (NOT (HAVE_LOG AND HAVE_EXP))
+    UNSET (HAVE_LOG CACHE)
+    UNSET (HAVE_EXP CACHE)
+    SET (CMAKE_REQUIRED_LIBRARIES "m")
+    CHECK_SYMBOL_EXISTS (log "math.h" HAVE_LOG)
+    CHECK_SYMBOL_EXISTS (exp "math.h" HAVE_EXP)
+    IF (HAVE_LOG AND HAVE_EXP)
+      SET (CMAKE_MATH_LIBS "m" CACHE STRING "Math library")
+      MARK_AS_ADVANCED (CMAKE_MATH_LIBS)
+  endif()
+endif()
 ENDIF ()

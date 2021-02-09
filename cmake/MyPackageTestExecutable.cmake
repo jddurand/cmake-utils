@@ -74,4 +74,18 @@ MACRO (MYPACKAGETESTEXECUTABLE name)
     ENDIF ()
   ENDFOREACH ()
 
+  #
+  # We always add dl an m libraries
+  #
+  IF (CMAKE_DL_LIBS OR CMAKE_MATH_LIBS)
+    FOREACH (_name ${name} ${name}_static)
+      IF (CMAKE_DL_LIBS)
+        TARGET_LINK_LIBRARIES(${_name} PRIVATE ${CMAKE_DL_LIBS})
+      ENDIF ()
+      IF (CMAKE_MATH_LIBS)
+        TARGET_LINK_LIBRARIES(${_name} PRIVATE ${CMAKE_MATH_LIBS})
+      ENDIF ()
+    ENDFOREACH ()
+  ENDIF ()
+
 ENDMACRO()
