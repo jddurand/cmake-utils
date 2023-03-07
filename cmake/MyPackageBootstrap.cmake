@@ -29,7 +29,7 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
   #
   # Policies common to all our files
   #
-  FOREACH (_policy CMP0018 CMP0063 CMP0075)
+  FOREACH (_policy CMP0018 CMP0063 CMP0075 CMP0057)
     IF (POLICY ${_policy})
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Setting policy ${_policy} to NEW")
