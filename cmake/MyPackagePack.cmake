@@ -9,16 +9,16 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Configuration CPack")
     ENDIF ()
-    SET (CPACK_PACKAGE_NAME                "${PROJECT_NAME}")
-    SET (CPACK_PACKAGE_VENDOR              "${VENDOR}")
-    SET (CPACK_PACKAGE_DESCRIPTION_SUMMARY "${SUMMARY}")
-    SET (CPACK_PACKAGE_VERSION             "${${PROJECT_NAME}_VERSION}")
-    SET (CPACK_PACKAGE_VERSION_MAJOR       "${${PROJECT_NAME}_VERSION_MAJOR}")
-    SET (CPACK_PACKAGE_VERSION_MINOR       "${${PROJECT_NAME}_VERSION_MINOR}")
-    SET (CPACK_PACKAGE_VERSION_PATCH       "${${PROJECT_NAME}_VERSION_PATCH}")
-    IF (EXISTS "${PROJECT_SOURCE_DIR}/LICENSE")
-      CONFIGURE_FILE ("${PROJECT_SOURCE_DIR}/LICENSE"  "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-      SET (CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+    SET (CPACK_PACKAGE_NAME                ${PROJECT_NAME})
+    SET (CPACK_PACKAGE_VENDOR              ${VENDOR})
+    SET (CPACK_PACKAGE_DESCRIPTION_SUMMARY ${SUMMARY})
+    SET (CPACK_PACKAGE_VERSION             ${${PROJECT_NAME}_VERSION})
+    SET (CPACK_PACKAGE_VERSION_MAJOR       ${${PROJECT_NAME}_VERSION_MAJOR})
+    SET (CPACK_PACKAGE_VERSION_MINOR       ${${PROJECT_NAME}_VERSION_MINOR})
+    SET (CPACK_PACKAGE_VERSION_PATCH       ${${PROJECT_NAME}_VERSION_PATCH})
+    IF (EXISTS ${PROJECT_SOURCE_DIR}/LICENSE)
+      CONFIGURE_FILE (${PROJECT_SOURCE_DIR}/LICENSE ${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt)
+      SET (CPACK_RESOURCE_FILE_LICENSE     ${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt)
     ELSE ()
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] No LICENSE")
@@ -29,6 +29,10 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     # Get all components in one package
     #
     SET (CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+    #
+    # And explicit show them
+    SET (CPACK_MONOLITHIC_INSTALL FALSE)
+    #
     #
     # Always enable archive
     #
@@ -41,11 +45,11 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     # Any variable starting with CPACK_ is exported to cpack...
     #
     SET (CPACK_PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
-    SET (CPACK_PROJECT_CONFIG_FILE ${PROJECT_SOURCE_DIR}/CPackCustomProjectConfig.cmake)
-    SET (CPACK_OUTPUT_CONFIG_FILE ${PROJECT_SOURCE_DIR}/CPackConfig.cmake)
+    SET (CPACK_PROJECT_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/CPackCustomProjectConfig.cmake)
+    SET (CPACK_OUTPUT_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/CPackConfig.cmake)
     SET (CPACK_CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM})
     SET (CPACK_TEMP_BASENAME CpackTempDestdir)
-    SET (CPACK_TEMP_DIRNAME ${PROJECT_SOURCE_DIR})
+    SET (CPACK_TEMP_DIRNAME ${CMAKE_CURRENT_BINARY_DIR})
     SET (CPACK_TEMP_FULLPATH ${CPACK_TEMP_DIRNAME}/${CPACK_TEMP_BASENAME})
     #
     # Generate CPACK_PROJECT_CONFIG_FILE
@@ -59,22 +63,6 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "FILE (REMOVE_RECURSE \${CPACK_TEMP_FULLPATH})\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "MESSAGE (STATUS \"Installing to \${CPACK_TEMP_FULLPATH}\")\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "EXECUTE_PROCESS (COMMAND \${CPACK_CMAKE_MAKE_PROGRAM} install DESTDIR=\${CPACK_TEMP_BASENAME} WORKING_DIRECTORY \${CPACK_TEMP_DIRNAME})\n")
-    #
-    # Rework internal variables to avoid zombies
-    #
-    GET_CMAKE_PROPERTY(COMPONENTS _components)
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "SET (_component_ok_list)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "FOREACH (_component IN LISTS CPACK_COMPONENTS_ALL)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  SET (_install_manifest__path \${CPACK_PROJECT_SOURCE_DIR}/install_manifest_\${_component}.txt)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  IF (EXISTS \${_install_manifest__path})\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    FILE( READ \${_install_manifest__path} _content HEX)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    STRING (LENGTH \${_content} _content_length)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    IF (\${_content_length} GREATER 0)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "      LIST (APPEND _component_ok_list \${_component})\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    ENDIF ()\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  ENDIF ()\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "ENDFOREACH ()\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "SET (CPACK_COMPONENTS_ALL \${_component_ok_list})\n")
     #
     # Include CPack - from now on we will have access to CPACK own macros
     #
@@ -164,6 +152,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     #
     # Components
     #
+    SET (CPACK_COMPONENTS_ALL)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Manpage component        : ${_HAVE_MANPAGECOMPONENT}")
       MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Dynamic Library component: ${_HAVE_DYNAMICLIBRARYCOMPONENT}")
@@ -180,6 +169,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
                           DESCRIPTION "Documentation in the man format\n\nUseful on all platforms but Windows, in general"
                           GROUP DocumentGroup
                           INSTALL_TYPES FullType)
+      LIST (APPEND CPACK_COMPONENTS_ALL ManpageComponent)
     ENDIF ()
     IF (_HAVE_DYNAMICLIBRARYCOMPONENT)
       IF (MYPACKAGE_DEBUG)
@@ -190,6 +180,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
                           DESCRIPTION "Dynamic Libraries\n\nNecessary almost anytime"
                           GROUP DevelopmentLibraryGroup
                           INSTALL_TYPES FullType DevelopmentType)
+      LIST (APPEND CPACK_COMPONENTS_ALL DynamicLibraryComponent)
     ENDIF ()
     IF (_HAVE_STATICLIBRARYCOMPONENT)
       IF (MYPACKAGE_DEBUG)
@@ -200,6 +191,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
                           DESCRIPTION "Static Libraries\n\nOnly programmers would eventually need that"
                           GROUP DevelopmentLibraryGroup
                           INSTALL_TYPES FullType DevelopmentType)
+      LIST (APPEND CPACK_COMPONENTS_ALL StaticLibraryComponent)
     ENDIF ()
     IF (_HAVE_HEADERCOMPONENT)
       IF (MYPACKAGE_DEBUG)
@@ -210,6 +202,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
                           DESCRIPTION "C/C++ Headers\n\nProgrammers will need these files"
                           GROUP DevelopmentGroup
                           INSTALL_TYPES FullType DevelopmentType)
+      LIST (APPEND CPACK_COMPONENTS_ALL HeaderComponent)
     ENDIF ()
     IF (_HAVE_APPLICATIONCOMPONENT)
       IF (MYPACKAGE_DEBUG)
@@ -221,7 +214,29 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
                           GROUP RuntimeGroup
                           INSTALL_TYPES FullType
                           DEPENDS DynamicLibraryComponent)
+      LIST (APPEND CPACK_COMPONENTS_ALL ApplicationComponent)
     ENDIF ()
+    #
+    # Rework internal variables to avoid zombies
+    #
+    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} [[
+MESSAGE (STATUS "\${CPACK_COMPONENTS_ALL} is ${CPACK_COMPONENTS_ALL}")
+SET (_component_ok_list)
+FOREACH (_component IN LISTS CPACK_COMPONENTS_ALL)
+  SET (_install_manifest__path ${CMAKE_CURRENT_BINARY_DIR}/install_manifest_${_component}.txt)
+  IF (EXISTS ${_install_manifest__path})
+    FILE( READ ${_install_manifest__path} _content HEX)
+    STRING (LENGTH ${_content} _content_length)
+    IF (${_content_length} GREATER 0)
+      MESSAGE (STATUS "Validating component ${_component}")
+      LIST (APPEND _component_ok_list ${_component})
+    ELSE ()
+      MESSAGE (STATUS "Disabling component ${_component}")
+    ENDIF ()
+  ENDIF ()
+ENDFOREACH ()
+SET (CPACK_COMPONENTS_ALL ${_component_ok_list})
+]])
     #
     # Quite subtil, but the "package" target is not visible at this time. There is a old standing bug
     # in CMake about this.
