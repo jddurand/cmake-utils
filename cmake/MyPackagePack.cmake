@@ -41,11 +41,12 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     # Any variable starting with CPACK_ is exported to cpack...
     #
     SET (CPACK_PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
-    SET (CPACK_PROJECT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/CPackCustomProjectConfig.cmake")
+    SET (CPACK_PROJECT_CONFIG_FILE ${PROJECT_SOURCE_DIR}/CPackCustomProjectConfig.cmake)
+    SET (CPACK_OUTPUT_CONFIG_FILE ${PROJECT_SOURCE_DIR}/CPackConfig.cmake)
     SET (CPACK_CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM})
-    SET (CPACK_TEMP_BASENAME "CpackTempDestdir")
+    SET (CPACK_TEMP_BASENAME CpackTempDestdir)
     SET (CPACK_TEMP_DIRNAME ${PROJECT_SOURCE_DIR})
-    SET (CPACK_TEMP_FULLPATH "${CPACK_TEMP_DIRNAME}/${CPACK_TEMP_BASENAME}")
+    SET (CPACK_TEMP_FULLPATH ${CPACK_TEMP_DIRNAME}/${CPACK_TEMP_BASENAME})
     #
     # Generate CPACK_PROJECT_CONFIG_FILE
     #
@@ -64,16 +65,16 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     GET_CMAKE_PROPERTY(COMPONENTS _components)
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "SET (_component_ok_list)\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "FOREACH (_component IN LISTS CPACK_COMPONENTS_ALL)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  SET (_install_manifest__path \"\${CPACK_PROJECT_SOURCE_DIR}/install_manifest_\${_component}.txt\")\n")
+    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  SET (_install_manifest__path \${CPACK_PROJECT_SOURCE_DIR}/install_manifest_\${_component}.txt)\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  IF (EXISTS \${_install_manifest__path})\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    FILE( READ \${_install_manifest__path} _content HEX)\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    STRING (LENGTH \"\${_content}\" _content_length)\n")
+    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    STRING (LENGTH \${_content} _content_length)\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    IF (\${_content_length} GREATER 0)\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "      LIST (APPEND _component_ok_list \${_component})\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "    ENDIF ()\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "  ENDIF ()\n")
     FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "ENDFOREACH ()\n")
-    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "SET (CPACK_COMPONENTS_ALL \"\${_component_ok_list}\")\n")
+    FILE (APPEND ${CPACK_PROJECT_CONFIG_FILE} "SET (CPACK_COMPONENTS_ALL \${_component_ok_list})\n")
     #
     # Include CPack - from now on we will have access to CPACK own macros
     #
