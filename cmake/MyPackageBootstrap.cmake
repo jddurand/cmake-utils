@@ -63,7 +63,7 @@ IF (NOT MYPACKAGEBOOTSTRAP_DONE)
   ENDIF ()
   ENABLE_TESTING()
   #
-  # Create check and man targets
+  # Create check target
   #
   IF (MYPACKAGE_DEBUG)
     MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Creating target check")
