@@ -38,10 +38,6 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     #
     SET (CPACK_ARCHIVE_COMPONENT_INSTALL ON)
     #
-    # In case of NSIS, ask for uninstall before install
-    #
-    SET (CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-    #
     # Include CPack - from now on we will have access to CPACK own macros
     #
     INCLUDE (CPack)
