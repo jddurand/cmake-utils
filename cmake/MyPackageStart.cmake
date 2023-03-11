@@ -14,10 +14,6 @@ MACRO (MYPACKAGESTART)
   #
   INCLUDE (GNUInstallDirs)
   #
-  # Include system libraries if needed (like on Windows)
-  #
-  INCLUDE (InstallRequiredSystemLibraries)
-  #
   # General module search path
   #
   SET (CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
