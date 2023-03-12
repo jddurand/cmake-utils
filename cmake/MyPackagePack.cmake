@@ -44,7 +44,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     #
     # Groups
     #
-    IF (${PROJECT_NAME}_HAVE_HEADERCOMPONENT)
+    IF (${PROJECT_NAME}_HAVE_HEADERCOMPONENT OR ${PROJECT_NAME}_HAVE_CMAKECOMPONENT)
       SET (_CAN_DEVELOPMENTGROUP TRUE)
     ELSE ()
       SET (_CAN_DEVELOPMENTGROUP FALSE)
@@ -74,7 +74,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] ... Add DevelopmentGroup")
       ENDIF ()
-      CPACK_ADD_COMPONENT_GROUP (DevelopmentGroup        DISPLAY_NAME "Development" DESCRIPTION "Development\n\nContains header component"  EXPANDED)
+      CPACK_ADD_COMPONENT_GROUP (DevelopmentGroup        DISPLAY_NAME "Development" DESCRIPTION "Development\n\nContains header and CMake components"  EXPANDED)
     ENDIF ()
     IF (_CAN_LIBRARYGROUP)
       IF (MYPACKAGE_DEBUG)
@@ -103,6 +103,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
       MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Dynamic Library component: ${${PROJECT_NAME}_HAVE_DYNAMICLIBRARYCOMPONENT}")
       MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Static Library component : ${${PROJECT_NAME}_HAVE_STATICLIBRARYCOMPONENT}")
       MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Header component         : ${${PROJECT_NAME}_HAVE_HEADERCOMPONENT}")
+      MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] CMake component          : ${${PROJECT_NAME}_HAVE_CMAKECOMPONENT}")
       MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Application component    : ${${PROJECT_NAME}_HAVE_APPLICATIONCOMPONENT}")
     ENDIF ()
     IF (${PROJECT_NAME}_HAVE_MANPAGECOMPONENT)
@@ -111,7 +112,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
       ENDIF ()
       CPACK_ADD_COMPONENT(ManpageComponent
                           DISPLAY_NAME "Man pages"
-                          DESCRIPTION "Documentation in the man format\n\nUseful on all platforms but Windows, in general"
+                          DESCRIPTION "Documentation in the man format"
                           GROUP DocumentGroup
                           )
       LIST (APPEND CPACK_COMPONENTS_ALL ManpageComponent)
@@ -122,7 +123,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
       ENDIF ()
       CPACK_ADD_COMPONENT(DynamicLibraryComponent
                           DISPLAY_NAME "Dynamic"
-                          DESCRIPTION "Dynamic Libraries\n\nNecessary almost anytime"
+                          DESCRIPTION "Dynamic Libraries"
                           GROUP LibraryGroup
                           )
       LIST (APPEND CPACK_COMPONENTS_ALL DynamicLibraryComponent)
@@ -133,7 +134,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
       ENDIF ()
       CPACK_ADD_COMPONENT(StaticLibraryComponent
                           DISPLAY_NAME "Static"
-                          DESCRIPTION "Static Libraries\n\nOnly programmers would eventually need that"
+                          DESCRIPTION "Static Libraries"
                           GROUP LibraryGroup
                           )
       LIST (APPEND CPACK_COMPONENTS_ALL StaticLibraryComponent)
@@ -144,10 +145,21 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
       ENDIF ()
       CPACK_ADD_COMPONENT(HeaderComponent
                           DISPLAY_NAME "Headers"
-                          DESCRIPTION "C/C++ Headers\n\nProgrammers will need these files"
+                          DESCRIPTION "C/C++ Headers"
                           GROUP DevelopmentGroup
                           )
       LIST (APPEND CPACK_COMPONENTS_ALL HeaderComponent)
+    ENDIF ()
+    IF (${PROJECT_NAME}_HAVE_CMAKECOMPONENT)
+      IF (MYPACKAGE_DEBUG)
+        MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] ... Add CMakeComponent")
+      ENDIF ()
+      CPACK_ADD_COMPONENT(CMakeComponent
+                          DISPLAY_NAME "CMake"
+                          DESCRIPTION "CMake imports"
+                          GROUP DevelopmentGroup
+                          )
+      LIST (APPEND CPACK_COMPONENTS_ALL CMakeComponent)
     ENDIF ()
     IF (${PROJECT_NAME}_HAVE_APPLICATIONCOMPONENT)
       IF (MYPACKAGE_DEBUG)
