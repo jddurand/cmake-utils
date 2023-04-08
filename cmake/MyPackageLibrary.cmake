@@ -147,15 +147,15 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   #
   INSTALL (TARGETS ${PROJECT_NAME}
 	EXPORT ${PROJECT_NAME}-targets
-    RUNTIME DESTINATION bin COMPONENT DynamicLibraryComponent
-    LIBRARY DESTINATION lib COMPONENT DynamicLibraryComponent
-    ARCHIVE DESTINATION lib COMPONENT DynamicLibraryComponent
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT DynamicLibraryComponent
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT DynamicLibraryComponent
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT DynamicLibraryComponent
   )
   INSTALL (TARGETS ${PROJECT_NAME}_static
 	EXPORT ${PROJECT_NAME}-targets
-    RUNTIME DESTINATION bin COMPONENT StaticLibraryComponent
-    LIBRARY DESTINATION lib COMPONENT StaticLibraryComponent
-    ARCHIVE DESTINATION lib COMPONENT StaticLibraryComponent
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT StaticLibraryComponent
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT StaticLibraryComponent
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT StaticLibraryComponent
   )
   #
   # For static library we want to debug information within the lib
@@ -163,7 +163,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   #
   IF (MSVC)
     TARGET_COMPILE_OPTIONS(${PROJECT_NAME}_static PRIVATE /Z7)
-	INSTALL(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION bin COMPONENT DynamicLibraryComponent OPTIONAL)
+	INSTALL(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT DynamicLibraryComponent OPTIONAL)
   ENDIF ()
   #
   # We make sure that the directory where is ${config_out} is public

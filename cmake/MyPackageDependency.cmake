@@ -126,15 +126,18 @@ MACRO (MYPACKAGEDEPENDENCY packageDepend packageDependSourceDir)
     STRING (TOUPPER ${packageDepend} _PACKAGEDEPEND)
     IF (_LOCAL)
       GET_FILENAME_COMPONENT(packageDependSourceDirAbsolute ${packageDependSourceDir} ABSOLUTE)
-      IF (MYPACKAGE_DEBUG)
-        MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-STATUS] Adding subdirectory ${packageDependSourceDirAbsolute}")
-	  ENDIF ()
-	  IF (_OBJECT)
+	  IF (_OBJECT OR (_TESTS AND NOT (_LIBS OR _EXES)))
 	    #
-		# If caller calls for an object dependency there is no install to do
+		# If caller calls for an object dependency or for a test-only dependency there is no install to do
 		#
+        IF (MYPACKAGE_DEBUG)
+          MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-STATUS] Adding subdirectory ${packageDependSourceDirAbsolute} EXCLUDE_FROM_ALL")
+	    ENDIF ()
         ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute} EXCLUDE_FROM_ALL)
 	  ELSE ()
+        IF (MYPACKAGE_DEBUG)
+          MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-STATUS] Adding subdirectory ${packageDependSourceDirAbsolute}")
+	    ENDIF ()
         ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})
 	  ENDIF ()
     ELSE ()
