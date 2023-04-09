@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR) # For list(PREPEND ...)
 #
 # Based on https://stackoverflow.com/questions/44292462/how-to-auto-generate-pkgconfig-files-from-cmake-targets
 #
@@ -15,8 +16,12 @@ project(pc_@TARGET@)
 
 message(STATUS "pc_@TARGET@: Starting")
 
+message(STATUS "pc_@TARGET@: AUTO_PC_INSTALL_PREFIX is $ENV{AUTO_PC_INSTALL_PREFIX}")
+message(STATUS "pc_@TARGET@: AUTO_PC_PATHS is $ENV{AUTO_PC_PATHS}")
+message(STATUS "pc_@TARGET@: AUTO_PC_PKGCONFIG_DIR is $ENV{AUTO_PC_PKGCONFIG_DIR}")
+
 message(STATUS "pc_@TARGET@: Requiring config of @TARGET@")
-find_package(@TARGET@ REQUIRED CONFIG)
+include("$ENV{AUTO_PC_PATHS}/@TARGET@Config.cmake")
 
 message(STATUS "pc_@TARGET@: Generating ${CMAKE_CURRENT_BINARY_DIR}/@TARGET@.pc")
 file(GENERATE OUTPUT @TARGET@.pc
@@ -31,20 +36,25 @@ Libs.private: $<TARGET_LINKER_FILE_DIR:@TARGET@::@TARGET@_static>/$<TARGET_LINKE
 ]] @ONLY NEWLINE_STYLE LF)
 
   file(CONFIGURE OUTPUT "pc.${TARGET}/post-install.cmake"
-       CONTENT [[
-#
-# Recuperate all the cmake files for this target
-#
-file(REAL_PATH "${CMAKE_INSTALL_PREFIX}" cmake_install_prefix)
+    CONTENT [[
+file(REAL_PATH "$ENV{DESTDIR}/$ENV{CMAKE_INSTALL_PREFIX}" cmake_install_prefix)
 message(STATUS "@TARGET@: cmake_install_prefix is ${cmake_install_prefix}")
+set(AUTO_PC_PATHS "${cmake_install_prefix}/$ENV{CMAKE_INSTALL_LIBDIR}/cmake/@TARGET@")
+message(STATUS "@TARGET@: AUTO_PC_PATHS is ${AUTO_PC_PATHS}")
+set(AUTO_PC_PKGCONFIG_DIR "${cmake_install_prefix}/$ENV{CMAKE_INSTALL_LIBDIR}/pkgconfig")
+message(STATUS "@TARGET@: AUTO_PC_PKGCONFIG_DIR is ${AUTO_PC_PKGCONFIG_DIR}")
 file(REAL_PATH "@CMAKE_BINARY_DIR@" cmake_binary_dir) # Top-level binary dir
 message(STATUS "@TARGET@: cmake_binary_dir is ${cmake_binary_dir}")
 file(REAL_PATH "@CMAKE_CURRENT_BINARY_DIR@" cmake_current_binary_dir)
 message(STATUS "@TARGET@: cmake_current_binary_dir is ${cmake_current_binary_dir}")
 
 set(proj "${cmake_current_binary_dir}/pc.@TARGET@")
-execute_process(COMMAND "@CMAKE_COMMAND@" "-DCMAKE_PREFIX_PATH=${cmake_install_prefix}" -S "${proj}" -B "${proj}/build")
-file(COPY "${proj}/build/@TARGET@.pc" DESTINATION "${cmake_install_prefix}")
+set(ENV{AUTO_PC_PATHS} ${AUTO_PC_PATHS})
+set(ENV{AUTO_PC_PKGCONFIG_DIR} ${AUTO_PC_PKGCONFIG_DIR})
+set(ENV{AUTO_PC_INSTALL_PREFIX} ${cmake_install_prefix})
+execute_process(COMMAND "@CMAKE_COMMAND@" -S "${proj}" -B "${proj}/build")
+message(STATUS "Creating ${AUTO_PC_PKGCONFIG_DIR}/@TARGET@.pc")
+file(COPY "${proj}/build/@TARGET@.pc" DESTINATION ${AUTO_PC_PKGCONFIG_DIR})
 ]] @ONLY NEWLINE_STYLE LF)
 
   GET_PROPERTY(remaining_post_installs GLOBAL PROPERTY MYPACKAGE_REMAINING_POST_INSTALLS)
@@ -67,8 +77,8 @@ file(COPY "${proj}/build/@TARGET@.pc" DESTINATION "${cmake_install_prefix}")
   SET (FIRE_POST_INSTALL_CMAKE_PATH ${CMAKE_BINARY_DIR}/fire_post_installs.cmake)
   IF (remaining_post_installs EQUAL 1)
     #
-	# First time: initialize fire_post_installs.cmake
-	#
+    # First time: initialize fire_post_installs.cmake
+    #
     FILE(WRITE ${FIRE_POST_INSTALL_CMAKE_PATH} [[]])
   ENDIF ()
   FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "include(${CMAKE_CURRENT_BINARY_DIR}/pc.${TARGET}/post-install.cmake)\n")
@@ -82,6 +92,8 @@ file(COPY "${proj}/build/@TARGET@.pc" DESTINATION "${cmake_install_prefix}")
   message(STATUS \"Remaining post-installs: \${remaining_post_installs}\")
   if (remaining_post_installs LESS_EQUAL 0)
     message(STATUS \"Firing post-installs\")
+    set(ENV{CMAKE_INSTALL_PREFIX} ${CMAKE_INSTALL_PREFIX})
+    set(ENV{CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_LIBDIR})
     execute_process(COMMAND \"${CMAKE_COMMAND}\" -P \"${FIRE_POST_INSTALL_CMAKE_PATH}\")
   endif ()
   ")
@@ -89,6 +101,10 @@ file(COPY "${proj}/build/@TARGET@.pc" DESTINATION "${cmake_install_prefix}")
 endfunction()
 
 MACRO (MYPACKAGEPKGCONFIGEXPORT)
+  #
+  # We depend on CMake exports
+  #
+  MYPACKAGECMAKEEXPORT()
   auto_pc(${PROJECT_NAME})
   # Clean up install path
   install(CODE [[ file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/_auto_pc") ]])
