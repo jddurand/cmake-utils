@@ -14,16 +14,12 @@ function(auto_pc TARGET)
 cmake_minimum_required(VERSION 3.16)
 project(pc_@TARGET@)
 
-message(STATUS "pc_@TARGET@: Starting")
+message(STATUS "[pc.@TARGET@/CMakeLists.txt] Starting")
 
-message(STATUS "pc_@TARGET@: AUTO_PC_INSTALL_PREFIX is $ENV{AUTO_PC_INSTALL_PREFIX}")
-message(STATUS "pc_@TARGET@: AUTO_PC_PATHS is $ENV{AUTO_PC_PATHS}")
-message(STATUS "pc_@TARGET@: AUTO_PC_PKGCONFIG_DIR is $ENV{AUTO_PC_PKGCONFIG_DIR}")
-
-message(STATUS "pc_@TARGET@: Requiring config of @TARGET@")
+message(STATUS "[pc.@TARGET@/CMakeLists.txt] Requiring config of @TARGET@")
 include("$ENV{AUTO_PC_PATHS}/@TARGET@Config.cmake")
 
-message(STATUS "pc_@TARGET@: Generating ${CMAKE_CURRENT_BINARY_DIR}/@TARGET@.pc")
+message(STATUS "[pc.@TARGET@/CMakeLists.txt] Generating ${CMAKE_CURRENT_BINARY_DIR}/@TARGET@.pc")
 file(GENERATE OUTPUT @TARGET@.pc
      CONTENT [=[
 Name: @TARGET@
@@ -37,23 +33,19 @@ Libs.private: $<TARGET_LINKER_FILE_DIR:@TARGET@::@TARGET@_static>/$<TARGET_LINKE
 
   file(CONFIGURE OUTPUT "pc.${TARGET}/post-install.cmake"
     CONTENT [[
-file(REAL_PATH "$ENV{DESTDIR}/$ENV{CMAKE_INSTALL_PREFIX}" cmake_install_prefix)
-message(STATUS "@TARGET@: cmake_install_prefix is ${cmake_install_prefix}")
-set(AUTO_PC_PATHS "${cmake_install_prefix}/$ENV{CMAKE_INSTALL_LIBDIR}/cmake/@TARGET@")
-message(STATUS "@TARGET@: AUTO_PC_PATHS is ${AUTO_PC_PATHS}")
-set(AUTO_PC_PKGCONFIG_DIR "${cmake_install_prefix}/$ENV{CMAKE_INSTALL_LIBDIR}/pkgconfig")
-message(STATUS "@TARGET@: AUTO_PC_PKGCONFIG_DIR is ${AUTO_PC_PKGCONFIG_DIR}")
+file(REAL_PATH "$ENV{CMAKE_CURRENT_SOURCE_DIR}" cmake_install_prefix)
+file(REAL_PATH "$ENV{CMAKE_INSTALL_LIBDIR}" cmake_install_libdir)
+set(AUTO_PC_PATHS "${cmake_install_libdir}/cmake/@TARGET@")
+set(AUTO_PC_PKGCONFIG_DIR "${cmake_install_libdir}/pkgconfig")
 file(REAL_PATH "@CMAKE_BINARY_DIR@" cmake_binary_dir) # Top-level binary dir
-message(STATUS "@TARGET@: cmake_binary_dir is ${cmake_binary_dir}")
 file(REAL_PATH "@CMAKE_CURRENT_BINARY_DIR@" cmake_current_binary_dir)
-message(STATUS "@TARGET@: cmake_current_binary_dir is ${cmake_current_binary_dir}")
 
 set(proj "${cmake_current_binary_dir}/pc.@TARGET@")
 set(ENV{AUTO_PC_PATHS} ${AUTO_PC_PATHS})
 set(ENV{AUTO_PC_PKGCONFIG_DIR} ${AUTO_PC_PKGCONFIG_DIR})
 set(ENV{AUTO_PC_INSTALL_PREFIX} ${cmake_install_prefix})
 execute_process(COMMAND "@CMAKE_COMMAND@" -S "${proj}" -B "${proj}/build")
-message(STATUS "Creating ${AUTO_PC_PKGCONFIG_DIR}/@TARGET@.pc")
+message(STATUS "[pc.@TARGET@/post-install.cmake] Creating ${AUTO_PC_PKGCONFIG_DIR}/@TARGET@.pc")
 file(COPY "${proj}/build/@TARGET@.pc" DESTINATION ${AUTO_PC_PKGCONFIG_DIR})
 ]] @ONLY NEWLINE_STYLE LF)
 
@@ -84,20 +76,45 @@ file(COPY "${proj}/build/@TARGET@.pc" DESTINATION ${AUTO_PC_PKGCONFIG_DIR})
   FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "include(${CMAKE_CURRENT_BINARY_DIR}/pc.${TARGET}/post-install.cmake)\n")
   #
   # At each install we decrement the number of remaining post installs, and fire all of them when the number is 0
+  # We CANNOT use CMAKE_INSTALL_PREFIX variable contrary to what is posted almost everywhere on the net: CPack will
+  # will have a CMAKE_INSTALL_PREFIX different, the real and only way to know exactly where we install things is to
+  # set the current working directory to $DESTDIR/$CMAKE_INSTALL_PREFIX, and use WORKING_DIRECTORY as the full install prefix dir.
   #
   INSTALL(CODE "
-  file(READ \"${REMAINING_POST_INSTALLS_PATH}\" remaining_post_installs)
-  math(EXPR remaining_post_installs \"\${remaining_post_installs} - 1\")
-  FILE(WRITE \"${REMAINING_POST_INSTALLS_PATH}\" \"\${remaining_post_installs}\")
-  message(STATUS \"Remaining post-installs: \${remaining_post_installs}\")
-  if (remaining_post_installs LESS_EQUAL 0)
-    message(STATUS \"Firing post-installs\")
-    set(ENV{CMAKE_INSTALL_PREFIX} ${CMAKE_INSTALL_PREFIX})
-    set(ENV{CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_LIBDIR})
-    execute_process(COMMAND \"${CMAKE_COMMAND}\" -P \"${FIRE_POST_INSTALL_CMAKE_PATH}\")
-  endif ()
-  ")
-  # INSTALL (SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/pc.${TARGET}/post-install.cmake")
+    set(CPACK_IS_RUNNING \$ENV{CPACK_IS_RUNNING})
+    #
+    # Prevent a warning from GNUInstallDirs, unfortunately enable_language() is not scriptable ;)
+    #
+    set(CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+    set(CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
+    include(GNUInstallDirs)
+    #
+    # We do not want to run this when it is CPack
+    #
+    if (NOT CPACK_IS_RUNNING)
+      file(READ \"${REMAINING_POST_INSTALLS_PATH}\" remaining_post_installs)
+      math(EXPR remaining_post_installs \"\${remaining_post_installs} - 1\")
+      FILE(WRITE \"${REMAINING_POST_INSTALLS_PATH}\" \"\${remaining_post_installs}\")
+      message(STATUS \"Remaining post-installs: \${remaining_post_installs}\")
+      if (remaining_post_installs LESS_EQUAL 0)
+        message(STATUS \"Firing post-installs\")
+        set(ENV{CMAKE_INSTALL_PREFIX} \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}\")
+        set(ENV{CMAKE_INSTALL_LIBDIR} \${CMAKE_INSTALL_LIBDIR})
+        execute_process(COMMAND \"${CMAKE_COMMAND}\" -P \"${FIRE_POST_INSTALL_CMAKE_PATH}\"  WORKING_DIRECTORY \$ENV{CMAKE_INSTALL_PREFIX})
+      endif ()
+    else()
+      set(ENV{CMAKE_INSTALL_PREFIX} \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}\")
+      set(ENV{CMAKE_INSTALL_LIBDIR} \${CMAKE_INSTALL_LIBDIR})
+      execute_process(COMMAND \"${CMAKE_COMMAND}\" -P \"${FIRE_POST_INSTALL_CMAKE_PATH}\"  WORKING_DIRECTORY \$ENV{CMAKE_INSTALL_PREFIX})
+    endif()
+  "
+  COMPONENT LibraryComponent
+  )
+  #SET (CPACK_PRE_BUILD_SCRIPT_PC_PATH ${CMAKE_CURRENT_BINARY_DIR}/cpack_pre_build_script_pc.cmake)
+  #SET (FIRE_POST_INSTALL_CMAKE_PATH ${CMAKE_BINARY_DIR}/fire_post_installs.cmake)
+  #FILE (WRITE ${CPACK_PRE_BUILD_SCRIPT_PC_PATH} "set(ENV{CMAKE_INSTALL_LIBDIR} \${CMAKE_INSTALL_LIBDIR})\nset(ENV{AUTO_PC_PATHS} \${CMAKE_INSTALL_PREFIX}/..)\nexecute_process(COMMAND \"${CMAKE_COMMAND}\" -P \"${FIRE_POST_INSTALL_CMAKE_PATH}\")\n")
+  #LIST (APPEND CPACK_PRE_BUILD_SCRIPTS ${CPACK_PRE_BUILD_SCRIPT_PC_PATH})
+  #SET (CPACK_PRE_BUILD_SCRIPTS ${CPACK_PRE_BUILD_SCRIPTS} PARENT_SCOPE)
 endfunction()
 
 MACRO (MYPACKAGEPKGCONFIGEXPORT)

@@ -32,7 +32,7 @@ MACRO (MYPACKAGECMAKEEXPORT)
     INSTALL (EXPORT ${_export_targets}
              NAMESPACE ${_namespace}
              DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-             COMPONENT CMakeComponent)
+             COMPONENT LibraryComponent)
     INCLUDE (CMakePackageConfigHelpers)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-START-DEBUG] Generating ${PROJECT_NAME}Config.cmake")
@@ -55,9 +55,8 @@ MACRO (MYPACKAGECMAKEEXPORT)
       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-	  COMPONENT CMakeComponent
+	  COMPONENT LibraryComponent
     )
     FILE (REMOVE ${TARGET_CMAKE_IN} ${_target_cmake_in})
-    SET (${PROJECT_NAME}_HAVE_CMAKECOMPONENT TRUE CACHE INTERNAL "Have CMakeComponent" FORCE)
   ENDIF ()
 ENDMACRO()
