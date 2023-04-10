@@ -151,8 +151,12 @@ MACRO (MYPACKAGEPKGCONFIGEXPORT)
   #
   # We depend on CMake exports
   #
-  MYPACKAGECMAKEEXPORT()
-  auto_pc(${PROJECT_NAME})
-  # Clean up install path
-  install(CODE [[ file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/_auto_pc") ]])
+  IF (NOT CMAKE_VERSION VERSION_LESS "3.26")
+    MYPACKAGECMAKEEXPORT()
+    auto_pc(${PROJECT_NAME})
+    # Clean up install path
+    install(CODE [[ file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/_auto_pc") ]])
+  ELSE ()
+    MESSAGE (AUTHOR_WARNING "Pkgconfig export requires version >= 3.26")
+  ENDIF ()
 ENDMACRO ()
