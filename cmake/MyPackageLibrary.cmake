@@ -33,11 +33,10 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   IF (MYPACKAGE_DEBUG)
     MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Creating SHARED library ${PROJECT_NAME}")
   ENDIF ()
-  ADD_LIBRARY (${PROJECT_NAME} SHARED ${ARGN})
+  ADD_LIBRARY (${PROJECT_NAME} SHARED $<TARGET_OBJECTS:${PROJECT_NAME}_objs>)
   IF (MYPACKAGE_DEBUG)
     MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Setting PRIVATE -D${PROJECT_NAME}_EXPORTS on ${PROJECT_NAME}")
   ENDIF ()
-  TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PRIVATE -D${PROJECT_NAME}_EXPORTS)
   SET_TARGET_PROPERTIES(${PROJECT_NAME}
     PROPERTIES
     VERSION       ${${PROJECT_NAME}_VERSION}
@@ -60,17 +59,16 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   IF (MYPACKAGE_DEBUG)
     MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Creating STATIC target ${PROJECT_NAME}_static")
   ENDIF ()
-  ADD_LIBRARY (${PROJECT_NAME}_static STATIC ${ARGN})
+  ADD_LIBRARY (${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_static_objs>)
   IF (MYPACKAGE_DEBUG)
     MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Setting PUBLIC -D${PROJECT_NAME}_STATIC on ${PROJECT_NAME}")
   ENDIF ()
-  TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME}_static PUBLIC -D${PROJECT_NAME}_STATIC)
   #
   # ... Tracing
   #
   STRING (TOUPPER ${PROJECT_NAME} _PROJECTNAME)
   IF (NTRACE)
-    FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+    FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Setting PRIVATE -D${_PROJECTNAME}_NTRACE on ${_target}")
       ENDIF ()
@@ -80,7 +78,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   #
   # ... Version information
   #
-  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Setting PRIVATE version macros on ${_target}")
     ENDIF ()
@@ -94,7 +92,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   #
   # We always enable C99 when available
   #
-  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Setting PROPERTY C_STANDARD 99 on ${_target}")
     ENDIF ()
@@ -107,7 +105,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
     #
     # On NetBSD, enable this platform features. This makes sure we always have "long long" btw.
     #
-    FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+    FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Setting PUBLIC -D_NETBSD_SOURCE=1 on ${_target}")
       ENDIF ()
@@ -118,7 +116,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   # Project's own include directories
   #
   SET (_project_include_directories ${CMAKE_CURRENT_BINARY_DIR}/output/include ${PROJECT_SOURCE_DIR}/include)
-  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
     FOREACH (_include_directory ${_project_include_directories})
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Adding PUBLIC ${build_local_interface} ${_include_directory} include dependency to ${_target}")
@@ -134,7 +132,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   # Call for the export headers
   #
   MYPACKAGEEXPORT()
-  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] Adding ${PROJECT_NAME}_export ${PROJECT_NAME}_config dependencies to ${_target}")
     ENDIF ()
@@ -180,7 +178,7 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   # We make sure that the directory where is ${config_out} is public
   #
   GET_FILENAME_COMPONENT(_config_out_dir ${config_out} DIRECTORY)
-  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs ${PROJECT_NAME} ${PROJECT_NAME}_static)
+  FOREACH (_target ${PROJECT_NAME}_objs ${PROJECT_NAME}_static_objs)
     TARGET_INCLUDE_DIRECTORIES(${_target} PUBLIC $<${build_local_interface}:${_config_out_dir}>)
   ENDFOREACH ()
 
