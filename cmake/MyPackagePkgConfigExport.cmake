@@ -31,7 +31,9 @@ FOREACH(_package_dependency ${@TARGET@_PACKAGE_DEPENDENCIES})
   message(STATUS "[pc.@TARGET@/CMakeLists.txt] @TARGET@ Package dependency: ${_package_dependency}, Version: ${@TARGET@_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION}")
   list(APPEND _target_computed_package_dependencies "${_package_dependency} = ${@TARGET@_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION}")
 ENDFOREACH()
-SET_TARGET_PROPERTIES(@TARGET@::@TARGET@ PROPERTIES COMPUTED_PACKAGE_DEPENDENCIES ${_target_computed_package_dependencies})
+if(_target_computed_package_dependencies)
+  SET_TARGET_PROPERTIES(@TARGET@::@TARGET@ PROPERTIES COMPUTED_PACKAGE_DEPENDENCIES ${_target_computed_package_dependencies})
+endif()
 #
 # I do not know why $<IF:$<BOOL:$<TARGET_PROPERTY:INTERFACE_LINK_LIBRARIES>>,$<JOIN:$<LIST:TRANSFORM,$<TARGET_PROPERTY:INTERFACE_LINK_LIBRARIES>,REPLACE,".*::","">,>,>
 # do not work
