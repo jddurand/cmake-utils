@@ -221,25 +221,19 @@ MACRO (MYPACKAGEDEPENDENCY packageDepend packageDependSourceDir)
           MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] Adding ${_package_dependency_scope} dependency on ${realPackageDepend}, of type ${realPackageDepend_type}, for target ${_target}")
         ENDIF ()
         IF ((realPackageDepend_type STREQUAL STATIC_LIBRARY) OR (realPackageDepend_type STREQUAL SHARED_LIBRARY))
-		  #
-		  # Dependency is on a true library: export target will have to produce a dependency as well
-		  #
+	  #
+	  # Dependency is on a true library: export target will have to produce a dependency as well
+	  #
           TARGET_LINK_LIBRARIES(${_target} ${_package_dependency_scope} ${realPackageDepend})
-		  IF (NOT ${realPackageDepend} IN_LIST ${PROJECT_NAME}_public_dependencies)
-            IF (MYPACKAGE_DEBUG)
-              MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] Adding ${realPackageDepend} import dependency for target ${_target}")
+	  IF (NOT ${packageDepend} IN_LIST ${PROJECT_NAME}_package_dependencies)
+	    IF (MYPACKAGE_DEBUG)
+              MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] Adding ${packageDepend} package dependency for project ${PROJECT_NAME}")
             ENDIF ()
-		    LIST(APPEND ${PROJECT_NAME}_public_dependencies ${realPackageDepend})
-		  ENDIF ()
-	      IF (NOT ${packageDepend} IN_LIST ${PROJECT_NAME}_build_dependencies)
-		    IF (MYPACKAGE_DEBUG)
-              MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] Adding ${packageDepend} build dependency for project ${PROJECT_NAME}")
-            ENDIF ()
-            LIST(APPEND ${PROJECT_NAME}_build_dependencies ${packageDepend})
+            LIST(APPEND ${PROJECT_NAME}_package_dependencies ${packageDepend})
           ENDIF ()
-		ELSE ()
+	ELSE ()
           TARGET_LINK_LIBRARIES(${_target} ${_package_dependency_scope} $<${build_local_interface}:${realPackageDepend}>)
-		ENDIF ()
+	ENDIF ()
         IF (_TESTS AND (realPackageDepend_type STREQUAL STATIC_LIBRARY) OR (realPackageDepend_type STREQUAL SHARED_LIBRARY))
           #
           # A bit painful but the target locations are not known at this time.

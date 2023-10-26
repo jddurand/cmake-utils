@@ -7,7 +7,7 @@ MACRO (MYPACKAGEPACK VENDOR SUMMARY)
     # Set common CPack variables
     #
     IF (MYPACKAGE_DEBUG)
-      MESSAGE (STATUS "[${PROJECT_NAME}-BOOTSTRAP-DEBUG] Configuration CPack")
+      MESSAGE (STATUS "[${PROJECT_NAME}-PACK-DEBUG] Configuration CPack")
     ENDIF ()
     SET (CPACK_PACKAGE_NAME                ${PROJECT_NAME})
     SET (CPACK_PACKAGE_VENDOR              ${VENDOR})
