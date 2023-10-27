@@ -13,22 +13,22 @@ function(auto_pc TARGET)
 cmake_minimum_required(VERSION 3.16)
 project(pc_@TARGET@)
 
-message(STATUS "[pc.@TARGET@/CMakeLists.txt] Starting")
+message(STATUS "[pc.@TARGET@/build] Starting")
 
-message(STATUS "[pc.@TARGET@/CMakeLists.txt] Initializing CMAKE_PREFIX_PATH with: $ENV{CMAKE_MODULE_ROOT_PATH}/@TARGET@")
-set(CMAKE_PREFIX_PATH "$ENV{CMAKE_MODULE_ROOT_PATH}/@TARGET@")
+message(STATUS "[pc.@TARGET@/build] Initializing CMAKE_PREFIX_PATH with: $ENV{CMAKE_MODULE_ROOT_PATH_ENV}/@TARGET@")
+set(CMAKE_PREFIX_PATH "$ENV{CMAKE_MODULE_ROOT_PATH_ENV}/@TARGET@")
 foreach(_package_dependency @_package_dependencies@)
-  message(STATUS "[pc.@TARGET@/CMakeLists.txt] Appending CMAKE_PREFIX_PATH with: $ENV{CMAKE_MODULE_ROOT_PATH}/${_package_dependency}")
+  message(STATUS "[pc.@TARGET@/build] Appending CMAKE_PREFIX_PATH with: $ENV{CMAKE_MODULE_ROOT_PATH}/${_package_dependency}")
   list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_MODULE_ROOT_PATH}/${_package_dependency}")
 endforeach()
 
-message(STATUS "[pc.@TARGET@/CMakeLists.txt] Requiring @TARGET@")
+message(STATUS "[pc.@TARGET@/build] Requiring @TARGET@")
 find_package(@TARGET@ REQUIRED)
-message(STATUS "[pc.@TARGET@/CMakeLists.txt] @TARGET@ Version: ${@TARGET@_VERSION}")
-message(STATUS "[pc.@TARGET@/CMakeLists.txt] @TARGET@ Package dependencies: ${@TARGET@_PACKAGE_DEPENDENCIES}")
+message(STATUS "[pc.@TARGET@/build] @TARGET@ Version: ${@TARGET@_VERSION}")
+message(STATUS "[pc.@TARGET@/build] @TARGET@ Package dependencies: ${@TARGET@_PACKAGE_DEPENDENCIES}")
 set(_target_computed_package_dependencies)
 FOREACH(_package_dependency ${@TARGET@_PACKAGE_DEPENDENCIES})
-  message(STATUS "[pc.@TARGET@/CMakeLists.txt] @TARGET@ Package dependency: ${_package_dependency}, Version: ${@TARGET@_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION}")
+  message(STATUS "[pc.@TARGET@/build] @TARGET@ Package dependency: ${_package_dependency}, Version: ${@TARGET@_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION}")
   list(APPEND _target_computed_package_dependencies "${_package_dependency} = ${@TARGET@_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION}")
 ENDFOREACH()
 if(_target_computed_package_dependencies)
@@ -65,7 +65,7 @@ FOREACH(_target ${_interface_link_libraries})
   ENDIF ()
 ENDFOREACH()
 IF (_target_computed_dependencies)
-  MESSAGE (STATUS "[pc.@TARGET@/CMakeLists.txt] Setting @TARGET@::@TARGET@ computed dependencies: ${_target_computed_dependencies}")
+  MESSAGE (STATUS "[pc.@TARGET@/build] Setting @TARGET@::@TARGET@ computed dependencies: ${_target_computed_dependencies}")
   SET_TARGET_PROPERTIES(@TARGET@::@TARGET@ PROPERTIES COMPUTED_DEPENDENCIES ${_target_computed_dependencies})
 ENDIF ()
 
@@ -96,13 +96,13 @@ FOREACH(_target ${_interface_link_libraries})
   ENDIF ()
 ENDFOREACH()
 IF (_target_computed_dependencies_static)
-  MESSAGE (STATUS "[pc.@TARGET@/CMakeLists.txt] Setting @TARGET@::@TARGET@ static computed dependencies: ${_target_computed_dependencies_static}")
+  MESSAGE (STATUS "[pc.@TARGET@/build] Setting @TARGET@::@TARGET@ static computed dependencies: ${_target_computed_dependencies_static}")
   SET_TARGET_PROPERTIES(@TARGET@::@TARGET@ PROPERTIES COMPUTED_DEPENDENCIES_STATIC ${_target_computed_dependencies_static})
 ENDIF ()
 
 SET_TARGET_PROPERTIES(@TARGET@::@TARGET@ PROPERTIES COMPUTED_VERSION ${@TARGET@_VERSION})
 
-message(STATUS "[pc.@TARGET@/CMakeLists.txt] Generating ${CMAKE_CURRENT_BINARY_DIR}/@TARGET@.pc")
+message(STATUS "[pc.@TARGET@/build] Generating ${CMAKE_CURRENT_BINARY_DIR}/@TARGET@.pc")
 file(GENERATE OUTPUT @TARGET@.pc
      CONTENT [=[
 prefix=${pcfiledir}/../..
@@ -135,18 +135,23 @@ Libs: ${libdir}/$<TARGET_LINKER_FILE_NAME:@TARGET@::@TARGET@_static>
   file(CONFIGURE OUTPUT "pc.${TARGET}/post-install.cmake"
     CONTENT [[
 set(AUTO_PC_PKGCONFIG_DIR "$ENV{DESTDIR}$ENV{CMAKE_INSTALL_PREFIX_ENV}/$ENV{CMAKE_INSTALL_LIBDIR_ENV}/pkgconfig")
+message(STATUS "[pc.@TARGET@/post-install.cmake] AUTO_PC_PKGCONFIG_DIR: ${AUTO_PC_PKGCONFIG_DIR}")
 set(proj "@CMAKE_CURRENT_BINARY_DIR@/pc.@TARGET@")
+message(STATUS "[pc.@TARGET@/post-install.cmake] Building in ${proj}/build")
 execute_process(COMMAND "@CMAKE_COMMAND@" -G "@CMAKE_GENERATOR@" -S "${proj}" -B "${proj}/build")
-message(STATUS "[pc.@TARGET@/post-install.cmake] Creating ${AUTO_PC_PKGCONFIG_DIR}/@TARGET@.pc")
+message(STATUS "[pc.@TARGET@/post-install.cmake] Copying to ${AUTO_PC_PKGCONFIG_DIR}/@TARGET@.pc")
 file(COPY "${proj}/build/@TARGET@.pc" DESTINATION ${AUTO_PC_PKGCONFIG_DIR})
 ]] @ONLY NEWLINE_STYLE LF)
 
   SET (FIRE_POST_INSTALL_CMAKE_PATH ${CMAKE_CURRENT_BINARY_DIR}/fire_post_install.cmake)
-  FILE(WRITE  ${FIRE_POST_INSTALL_CMAKE_PATH} "set(CMAKE_INSTALL_PREFIX \"\$ENV{CMAKE_INSTALL_PREFIX_ENV}\")\n")
+  FILE(WRITE  ${FIRE_POST_INSTALL_CMAKE_PATH} "message(STATUS \"[fire_post_install.cmake] \\\$ENV{DESTDIR}: \\\"\$ENV{DESTDIR}\\\"\")\n")
+  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "set(CMAKE_INSTALL_PREFIX \"\$ENV{CMAKE_INSTALL_PREFIX_ENV}\")\n")
+  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "message(STATUS \"[fire_post_install.cmake] CMAKE_INSTALL_PREFIX: \\\"\${CMAKE_INSTALL_PREFIX}\\\"\")\n")
   FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "set(CMAKE_INSTALL_LIBDIR \"\$ENV{CMAKE_INSTALL_LIBDIR_ENV}\")\n")
-  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "set(ENV{CMAKE_MODULE_ROOT_PATH} \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/\${CMAKE_INSTALL_LIBDIR}/cmake\")\n")
-  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "\n")
-  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "message(STATUS \"[fire_post_install.cmake] Firing ${PROJECT_NAME} post-install\")\n")
+  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "message(STATUS \"[fire_post_install.cmake] CMAKE_INSTALL_LIBDIR: \\\"\${CMAKE_INSTALL_LIBDIR}\\\"\")\n")
+  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "set(CMAKE_MODULE_ROOT_PATH \"\$ENV{CMAKE_MODULE_ROOT_PATH_ENV}\")\n")
+  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "message(STATUS \"[fire_post_install.cmake] CMAKE_MODULE_ROOT_PATH: \\\"\${CMAKE_MODULE_ROOT_PATH}\\\"\")\n")
+  FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "message(STATUS \"[fire_post_install.cmake] Including ${CMAKE_CURRENT_BINARY_DIR}/pc.${PROJECT_NAME}/post-install.cmake\")\n")
   FILE(APPEND ${FIRE_POST_INSTALL_CMAKE_PATH} "include(${CMAKE_CURRENT_BINARY_DIR}/pc.${PROJECT_NAME}/post-install.cmake)\n")
   #
   # At each install we decrement the number of remaining post installs, and fire all of them when the number is 0
@@ -169,6 +174,7 @@ file(COPY "${proj}/build/@TARGET@.pc" DESTINATION ${AUTO_PC_PKGCONFIG_DIR})
       message(STATUS \"CMAKE_INSTALL_LIBDIR is: \\\"\${CMAKE_INSTALL_LIBDIR}\\\"\")
       set(ENV{CMAKE_INSTALL_PREFIX_ENV} \"\${CMAKE_INSTALL_PREFIX}\") # Variable may be empty
       set(ENV{CMAKE_INSTALL_LIBDIR_ENV} \"\${CMAKE_INSTALL_LIBDIR}\") # Variable may be empty
+      set(ENV{CMAKE_MODULE_ROOT_PATH_ENV} \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/\${CMAKE_INSTALL_LIBDIR}/cmake\")
       execute_process(COMMAND \"${CMAKE_COMMAND}\" -G \"${CMAKE_GENERATOR}\" -P \"${FIRE_POST_INSTALL_CMAKE_PATH}\" WORKING_DIRECTORY \${CMAKE_INSTALL_PREFIX})
     endif()
   "
