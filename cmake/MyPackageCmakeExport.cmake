@@ -23,20 +23,26 @@ MACRO (MYPACKAGECMAKEEXPORT)
       STRING (APPEND _target_cmake_in [[
 
 ]])
-      FOREACH (_package_dependency ${${PROJECT_NAME}_package_dependencies})
-        GET_PROPERTY(_package_dependency_version GLOBAL PROPERTY MYPACKAGE_DEPENDENCY_${_package_dependency}_VERSION)
+      IF (${PROJECT_NAME}_package_dependencies)
+        STRING (APPEND _target_cmake_in "include(CMakeFindDependencyMacro)")
         STRING (APPEND _target_cmake_in [[
 
 ]])
-        STRING (APPEND _target_cmake_in "set(${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION ${_package_dependency_version})")
-        STRING (APPEND _target_cmake_in [[
+        FOREACH (_package_dependency ${${PROJECT_NAME}_package_dependencies})
+          GET_PROPERTY(_package_dependency_version GLOBAL PROPERTY MYPACKAGE_DEPENDENCY_${_package_dependency}_VERSION)
+          STRING (APPEND _target_cmake_in [[
 
 ]])
-        STRING (APPEND _target_cmake_in "find_package(${_package_dependency} \${${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION} REQUIRED)")
-        STRING (APPEND _target_cmake_in [[
+          STRING (APPEND _target_cmake_in "set(${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION ${_package_dependency_version})")
+          STRING (APPEND _target_cmake_in [[
 
 ]])
-      ENDFOREACH ()
+          STRING (APPEND _target_cmake_in "find_dependency(${_package_dependency} \${${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION})")
+          STRING (APPEND _target_cmake_in [[
+
+]])
+        ENDFOREACH ()
+      ENDIF ()
       STRING (APPEND _target_cmake_in [[
 
 ]])
