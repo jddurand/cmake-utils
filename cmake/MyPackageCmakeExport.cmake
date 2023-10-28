@@ -30,10 +30,20 @@ MACRO (MYPACKAGECMAKEEXPORT)
 ]])
         FOREACH (_package_dependency ${${PROJECT_NAME}_package_dependencies})
           GET_PROPERTY(_package_dependency_version GLOBAL PROPERTY MYPACKAGE_DEPENDENCY_${_package_dependency}_VERSION)
+          GET_PROPERTY(_package_dependency_version_major GLOBAL PROPERTY MYPACKAGE_DEPENDENCY_${_package_dependency}_VERSION_MAJOR)
+          GET_PROPERTY(_package_dependency_version_minor GLOBAL PROPERTY MYPACKAGE_DEPENDENCY_${_package_dependency}_VERSION_MINOR)
           STRING (APPEND _target_cmake_in [[
 
 ]])
           STRING (APPEND _target_cmake_in "set(${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION ${_package_dependency_version})")
+          STRING (APPEND _target_cmake_in [[
+
+]])
+          STRING (APPEND _target_cmake_in "set(${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION_MAJOR ${_package_dependency_version_major})")
+          STRING (APPEND _target_cmake_in [[
+
+]])
+          STRING (APPEND _target_cmake_in "set(${PROJECT_NAME}_PACKAGE_DEPENDENCY_${_package_dependency}_VERSION_MINOR ${_package_dependency_version_minor})")
           STRING (APPEND _target_cmake_in [[
 
 ]])
