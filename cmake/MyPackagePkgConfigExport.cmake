@@ -180,9 +180,19 @@ file(COPY "${proj}/build/@TARGET@.pc" DESTINATION ${AUTO_PC_PKGCONFIG_DIR})
   "
   COMPONENT LibraryComponent
   )
+  #
+  # Generate a file that will be overwriten by the post-install scripts
+  #
+  SET (FIRE_POST_INSTALL_PKGCONFIG_PATH ${CMAKE_CURRENT_BINARY_DIR}/pc.${TARGET}/build/${TARGET}.pc)
+  FILE (WRITE ${FIRE_POST_INSTALL_PKGCONFIG_PATH} "# Content of this file is overwriten during install or package phases")
+  INSTALL (FILES
+    ${FIRE_POST_INSTALL_PKGCONFIG_PATH}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+    COMPONENT LibraryComponent
+  )
 
   SET (CPACK_PRE_BUILD_SCRIPT_PC_PATH ${CMAKE_CURRENT_BINARY_DIR}/cpack_pre_build_script_pc_${TARGET}.cmake)
-  FILE (WRITE  ${CPACK_PRE_BUILD_SCRIPT_PC_PATH} "# Content of this file is overwriten at cpack install using CPACK_INSTALL_SCRIPTS\n")
+  FILE (WRITE  ${CPACK_PRE_BUILD_SCRIPT_PC_PATH} "# Content of this file is overwriten during package phase")
   LIST (APPEND CPACK_PRE_BUILD_SCRIPTS ${CPACK_PRE_BUILD_SCRIPT_PC_PATH})
   SET (CPACK_PRE_BUILD_SCRIPTS ${CPACK_PRE_BUILD_SCRIPTS} PARENT_SCOPE)
 endfunction()
