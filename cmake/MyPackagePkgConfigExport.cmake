@@ -35,7 +35,23 @@ foreach(_target_type iface static shared)
         list(APPEND _computed_requires ${_computed_require})
       endif()
     endforeach()
-    set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@_${_target_type}")
+    #
+    # iface produce no output file
+    # static produces @TARGET@_static
+    # shared produces @TARGET@
+    #
+    if(${_target_type} STREQUAL "iface")
+      set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@_iface")
+      set_target_properties(${_target} PROPERTIES PC_DESCRIPTION "@TARGET@ headers")
+    elseif(${_target_type} STREQUAL "shared")
+      set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@")
+      set_target_properties(${_target} PROPERTIES PC_DESCRIPTION "@TARGET@ dynamic library")
+    elseif(${_target_type} STREQUAL "static")
+      set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@_static")
+      set_target_properties(${_target} PROPERTIES PC_DESCRIPTION "@TARGET@ static library")
+    else()
+      message(FATAL_ERROR "Unsupported target type ${_target_type}")
+    endif()
     if (_computed_requires)
       list(JOIN _computed_requires "," _pc_requires)
       set_target_properties(${_target} PROPERTIES PC_REQUIRES "${_pc_requires}")
@@ -107,7 +123,7 @@ man1dir=${prefix}/@CMAKE_INSTALL_MANDIR@1
 man2dir=${prefix}/@CMAKE_INSTALL_MANDIR@2
 
 Name: $<TARGET_PROPERTY:PC_NAME>
-Description: $<TARGET_PROPERTY:PC_NAME>
+Description: $<TARGET_PROPERTY:PC_DESCRIPTION>
 Version: $<TARGET_PROPERTY:PC_VERSION>
 Requires: $<IF:$<BOOL:$<TARGET_PROPERTY:PC_REQUIRES>>,$<TARGET_PROPERTY:PC_REQUIRES>,>
 Requires.private: $<IF:$<BOOL:$<TARGET_PROPERTY:PC_REQUIRES_PRIVATE>>,$<TARGET_PROPERTY:PC_REQUIRES_PRIVATE>,>
