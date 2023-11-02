@@ -42,9 +42,15 @@ MACRO (MYPACKAGELIBRARY config_in config_out)
   IF (MYPACKAGE_DEBUG)
     MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] SET_TARGET_PROPERTIES(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME ${PROJECT_NAME}_static)")
   ENDIF ()
-  SET_TARGET_PROPERTIES(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME ${PROJECT_NAME}_static)
-  IF (MYPACKAGE_DEBUG)
-    MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] TARGET_LINK_LIBRARIES(${PROJECT_NAME}_static INTERFACE ${PROJECT_NAME}_iface)")
+  #
+  # On some OSes the static library suffix clashes with the shared link library suffix, i.e. lib on Windows. In such a case the output name
+  # of the library must explicitly indicate its type. By default, a library is a dynamic library, we append _static for static libraries.
+  #
+  IF (CMAKE_LINK_LIBRARY_SUFFIX STREQUAL CMAKE_SHARED_LIBRARY_SUFFIX)
+    SET_TARGET_PROPERTIES(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME ${PROJECT_NAME}_static)
+    IF (MYPACKAGE_DEBUG)
+      MESSAGE (STATUS "[${PROJECT_NAME}-LIBRARY-DEBUG] TARGET_LINK_LIBRARIES(${PROJECT_NAME}_static INTERFACE ${PROJECT_NAME}_iface)")
+    ENDIF ()
   ENDIF ()
   TARGET_LINK_LIBRARIES(${PROJECT_NAME}_static PUBLIC ${PROJECT_NAME}_iface)
   #
