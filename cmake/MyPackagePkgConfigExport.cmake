@@ -40,14 +40,12 @@ foreach(_target_type iface static shared)
     # static produces @TARGET@_static
     # shared produces @TARGET@
     #
+    set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@_${_target_type}")
     if(${_target_type} STREQUAL "iface")
-      set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@_iface")
       set_target_properties(${_target} PROPERTIES PC_DESCRIPTION "@TARGET@ headers")
     elseif(${_target_type} STREQUAL "shared")
-      set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@")
       set_target_properties(${_target} PROPERTIES PC_DESCRIPTION "@TARGET@ dynamic library")
     elseif(${_target_type} STREQUAL "static")
-      set_target_properties(${_target} PROPERTIES PC_NAME "@TARGET@_static")
       set_target_properties(${_target} PROPERTIES PC_DESCRIPTION "@TARGET@ static library")
     else()
       message(FATAL_ERROR "Unsupported target type ${_target_type}")
