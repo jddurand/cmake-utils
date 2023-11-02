@@ -5,7 +5,21 @@ MACRO (MYPACKAGETESTEXECUTABLE name)
     ENDFOREACH ()
   ENDIF ()
 
-  FOREACH (_name ${name} ${name}_static)
+  # Same logic as MYPACKAGEEXECUTABLE():
+  # User-friendly name for an executable do not include the "_shared" word. We
+  # produce at most two executables:
+  # ${name} if there is a shared library or an iface interface
+  # ${name}_static if there is a static library
+  #
+  SET (_candidates)
+  IF ((TARGET ${PROJECT_NAME}_shared) OR (TARGET ${PROJECT_NAME}_iface))
+    LIST(APPEND _candidates ${name})
+  ENDIF ()
+  IF (TARGET ${PROJECT_NAME}_static)
+    LIST(APPEND _candidates ${name}_static)
+  ENDIF ()
+
+  FOREACH (_name ${_candidates})
     LIST (APPEND ${PROJECT_NAME}_TEST_EXECUTABLE ${_name})
     IF (MYPACKAGE_DEBUG)
       MESSAGE (STATUS "[${PROJECT_NAME}-TESTEXECUTABLE-DEBUG] Adding ${_name}")
@@ -38,7 +52,7 @@ MACRO (MYPACKAGETESTEXECUTABLE name)
           MESSAGE (STATUS "[${PROJECT_NAME}-TESTEXECUTABLE-DEBUG] TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_shared)")
         ENDIF ()
         TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_shared)
-      ELSEIF (TARGET ${PROJECT_NAME}_iface)
+      ELSE ()
         IF (MYPACKAGE_DEBUG)
           MESSAGE (STATUS "[${PROJECT_NAME}-TESTEXECUTABLE-DEBUG] TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_iface)")
         ENDIF ()
@@ -52,12 +66,8 @@ MACRO (MYPACKAGETESTEXECUTABLE name)
           MESSAGE (STATUS "[${PROJECT_NAME}-TESTEXECUTABLE-DEBUG] TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_static)")
         ENDIF ()
         TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_static)
-      ELSEIF (TARGET ${PROJECT_NAME}_iface)
-        IF (MYPACKAGE_DEBUG)
-          MESSAGE (STATUS "[${PROJECT_NAME}-TESTEXECUTABLE-DEBUG] TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_iface)")
-        ENDIF ()
-        TARGET_LINK_LIBRARIES(${_name} PUBLIC ${PROJECT_NAME}_iface)
       ENDIF ()
     ENDIF ()
+
   ENDFOREACH ()
 ENDMACRO()
