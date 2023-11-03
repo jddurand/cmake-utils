@@ -201,7 +201,14 @@ MACRO (MYPACKAGEDEPENDENCY packageDepend packageDependSourceDir)
       IF (MYPACKAGE_DEBUG)
         MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})")
       ENDIF ()
-      ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})
+      IF(_TESTS AND (NOT (_LIBS OR _IFACE OR _EXES)))
+        #
+        # Dependency is only on tests
+        #
+        ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute} EXCLUDE_FROM_ALL)
+      ELSE()
+        ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})
+      ENDIF()
       #
       # We want to get the dependency version in our scope
       #
@@ -267,7 +274,7 @@ MACRO (MYPACKAGEDEPENDENCY packageDepend packageDependSourceDir)
   ENDIF ()
   FOREACH (_target ${_candidates})
     IF (TARGET ${_target})
-      IF (NOT _PRIVATE)
+      IF ((NOT _PRIVATE) AND (NOT (${_target} IN_LIST ${PROJECT_NAME}_TEST_EXECUTABLE)))
         IF (NOT ${packageDepend} IN_LIST ${PROJECT_NAME}_package_dependencies)
 	  IF (MYPACKAGE_DEBUG)
             MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] LIST(APPEND ${PROJECT_NAME}_package_dependencies ${packageDepend})")
