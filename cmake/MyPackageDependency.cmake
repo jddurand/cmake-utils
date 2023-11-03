@@ -198,15 +198,18 @@ MACRO (MYPACKAGEDEPENDENCY packageDepend packageDependSourceDir)
     STRING (TOUPPER ${packageDepend} _PACKAGEDEPEND)
     IF (_LOCAL)
       GET_FILENAME_COMPONENT(packageDependSourceDirAbsolute ${packageDependSourceDir} ABSOLUTE)
-      IF (MYPACKAGE_DEBUG)
-        MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})")
-      ENDIF ()
-      IF(_TESTS AND (NOT (_LIBS OR _IFACE OR _EXES)))
+      IF(_PRIVATE OR (_TESTS AND (NOT (_LIBS OR _IFACE OR _EXES))))
         #
         # Dependency is only on tests
         #
+        IF (MYPACKAGE_DEBUG)
+          MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute} EXCLUDE_FROM_ALL)")
+        ENDIF ()
         ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute} EXCLUDE_FROM_ALL)
       ELSE()
+        IF (MYPACKAGE_DEBUG)
+          MESSAGE (STATUS "[${PROJECT_NAME}-DEPEND-DEBUG] ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})")
+        ENDIF ()
         ADD_SUBDIRECTORY(${packageDependSourceDirAbsolute})
       ENDIF()
       #
