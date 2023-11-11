@@ -272,12 +272,6 @@ function(_cmake_all_in_one_init)
     _cmake_all_in_one_command_wrapper(add_compile_definitions _REENTRANT _THREAD_SAFE)
   endif()
   #
-  # Common -DNTRACE
-  #
-  if(_cmake_all_in_one_ntrace)
-    _cmake_all_in_one_command_wrapper(add_compile_definitions NTRACE)
-  endif()
-  #
   # Common include files
   #
   foreach(_include_file ${_cmake_all_in_one_check_include_files})
@@ -397,7 +391,7 @@ function(_cmake_all_in_one_add_library target category)
   elseif(_type STREQUAL "SHARED_LIBRARY")
     set(_type shared)
   elseif(_type STREQUAL "MODULE_LIBRARY")
-    set(_type shared)
+    set(_type module)
   else()
     set(_type)
   endif()
@@ -408,15 +402,21 @@ function(_cmake_all_in_one_add_library target category)
     _cmake_all_in_one_command_wrapper(set_target_properties ${target} PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
   endif()
   #
-  # Always attach version to the interface as compile definitions
+  # Always attach private definitions of version to the library unless it is the interface
   #
-  if(_type STREQUAL "INTERFACE_LIBRARY")
-    string(TOUPPER "${_cmake_all_in_one_base_name}_VERSION" _macro_version)
-    target_compile_definitions(${_target} INTERFACE -D${_macro_version}=${_cmake_all_in_one_version})
+  if((_type STREQUAL "static") OR (_type STREQUAL "shared") OR (_type STREQUAL "module"))
+    string(TOUPPER ${_cmake_all_in_one_base_name} _BASE_NAME)
+    #
+    # Common -DNTRACE
+    #
+    if(_cmake_all_in_one_ntrace)
+      _cmake_all_in_one_command_wrapper(target_compile_definitions ${_target} PRIVATE -D${_BASE_NAME})
+    endif()
+    target_compile_definitions(${_target} PRIVATE -D${_BASE_NAME}_VERSION="${_cmake_all_in_one_version}")
     foreach(_version_type major minor patch)
       if(_cmake_all_in_one_version_${_version_type})
-	string(TOUPPER "${_cmake_all_in_one_base_name}_VERSION_${_version_type}" _macro_version_${_version_type})
-	target_compile_definitions(${_target} INTERFACE -D${_macro_version_major}=${_cmake_all_in_one_version_${_version_type}})
+	string(TOUPPER "${_BASE_NAME}_VERSION_${_version_type}" _define)
+	target_compile_definitions(${_target} PRIVATE -D${_define}=${_cmake_all_in_one_version_${_version_type}})
       endif()
     endforeach()
   endif()
