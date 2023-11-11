@@ -503,24 +503,6 @@ function(_cmake_all_in_one_process)
     endif()
   endif()
   #
-  # Interface install
-  #
-  if(_cmake_all_in_one_public_headers)
-    #
-    # Set and propagate to caller _cmake_all_in_one_have_header_component variable
-    #
-    _cmake_all_in_one_output("#\n")
-    _cmake_all_in_one_output("# Interface install\n")
-    _cmake_all_in_one_output("#\n")
-    set(_cmake_all_in_one_have_header_component TRUE PARENT_SCOPE)
-    _cmake_all_in_one_command_wrapper(install
-      TARGETS ${_cmake_all_in_one_iface_name}
-      EXPORT ${_cmake_all_in_one_base_name}-targets
-      FILE_SET public_headers
-      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-      COMPONENT HeaderComponent)
-  endif()
-  #
   # Configuration
   #
   if(_cmake_all_in_one_config_in_file_name)
@@ -568,6 +550,24 @@ function(_cmake_all_in_one_process)
       get_filename_component(_dir_name ${_cmake_all_in_one_output_dir} NAME)
       _cmake_all_in_one_command_wrapper(source_group TREE ${_cmake_all_in_one_output_dir} PREFIX ${_dir_name} FILES ${_config_out_file})
     endif()
+  endif()
+  #
+  # Interface install
+  #
+  if(_cmake_all_in_one_public_headers)
+    #
+    # Set and propagate to caller _cmake_all_in_one_have_header_component variable
+    #
+    _cmake_all_in_one_output("#\n")
+    _cmake_all_in_one_output("# Interface install\n")
+    _cmake_all_in_one_output("#\n")
+    set(_cmake_all_in_one_have_header_component TRUE PARENT_SCOPE)
+    _cmake_all_in_one_command_wrapper(install
+      TARGETS ${_cmake_all_in_one_iface_name}
+      EXPORT ${_cmake_all_in_one_base_name}-targets
+      FILE_SET public_headers
+      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+      COMPONENT HeaderComponent)
   endif()
   #
   # Other library types
