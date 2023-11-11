@@ -377,22 +377,7 @@ function(_cmake_all_in_one_add_library target category)
   #
   _cmake_all_in_one_command_wrapper(add_library ${target} ${category} ${ARGN})
   #
-  # Target specific defaults
-  #
-  if(_cmake_all_in_one_visibility_inlines_hidden)
-    _cmake_all_in_one_command_wrapper(set_target_properties ${target} PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
-  endif()
-  #
-  # Target install
-  #
-  _cmake_all_in_one_command_wrapper(install TARGETS ${target}
-    EXPORT ${_cmake_all_in_one_base_name}-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT LibraryComponent
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT LibraryComponent
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT LibraryComponent
-  )
-  #
-  # Target dependencies
+  # Target type
   #
   get_target_property(_type ${target} TYPE)
   if(_type STREQUAL "INTERFACE_LIBRARY")
@@ -406,6 +391,37 @@ function(_cmake_all_in_one_add_library target category)
   else()
     set(_type)
   endif()
+  #
+  # Target specific defaults
+  #
+  if(_cmake_all_in_one_visibility_inlines_hidden)
+    _cmake_all_in_one_command_wrapper(set_target_properties ${target} PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  endif()
+  #
+  # Always attach version to the interface as compile definitions
+  #
+  if(_type STREQUAL "INTERFACE_LIBRARY")
+    string(TOUPPER "${_cmake_all_in_one_base_name}_VERSION" _macro_version)
+    target_compile_definitions(${_target} INTERFACE -D${_macro_version}=${_cmake_all_in_one_version})
+    foreach(_version_type major minor patch)
+      if(_cmake_all_in_one_version_${_version_type})
+	string(TOUPPER "${_cmake_all_in_one_base_name}_VERSION_${_version_type}" _macro_version_${_version_type})
+	target_compile_definitions(${_target} INTERFACE -D${_macro_version_major}=${_cmake_all_in_one_version_${_version_type}})
+      endif()
+    endforeach()
+  endif()
+  #
+  # Target install
+  #
+  _cmake_all_in_one_command_wrapper(install TARGETS ${target}
+    EXPORT ${_cmake_all_in_one_base_name}-targets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT LibraryComponent
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT LibraryComponent
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT LibraryComponent
+  )
+  #
+  # Target dependencies
+  #
   if(_type AND _cmake_all_in_one_${_type}_depends)
     _cmake_all_in_one_command_wrapper(target_link_libraries ${target} ${_cmake_all_in_one_${_type}_depends})
   endif()
@@ -681,6 +697,8 @@ function(cmake_all_in_one)
     BASE_NAME
     VERSION
     VERSION_MAJOR
+    VERSION_MINOR
+    VERSION_PATCH
     SOURCE_DIR
     OUTPUT_DIR
     NTRACE
@@ -770,6 +788,12 @@ function(cmake_all_in_one)
     set(_cmake_all_in_one_version_major ${CMAKE_PROJECT_VERSION_MAJOR})
   else()
     message(FATAL_ERROR "Missing CMAKE_PROJECT_VERSION_MAJOR")
+  endif()
+  if(DEFINED CMAKE_PROJECT_VERSION_MINOR)
+    set(_cmake_all_in_one_version_minor ${CMAKE_PROJECT_VERSION_MINOR})
+  endif()
+  if(DEFINED CMAKE_PROJECT_VERSION_PATCH)
+    set(_cmake_all_in_one_version_patch ${CMAKE_PROJECT_VERSION_PATCH})
   endif()
   set(_cmake_all_in_one_source_dir ${CMAKE_CURRENT_SOURCE_DIR})
   set(_cmake_all_in_one_output_dir ${CMAKE_CURRENT_BINARY_DIR}/output)
